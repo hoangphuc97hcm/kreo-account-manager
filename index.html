@@ -349,6 +349,8 @@
             <div class="sync-status">
                 <div class="sync-indicator" id="syncIndicator"></div>
                 <span id="syncStatus">Đang kết nối...</span>
+                <!-- Temporary Logout Link -->
+                <a href="#" id="tempLogoutAdmin" onclick="releaseAccount(\'admin\'); return false;" style="color: #ef4444; margin-left: 10px; display: none; font-weight: bold;">Đăng xuất Admin (Tạm)</a>
             </div>
             <h1>🚀 Kreo Account Manager</h1>
             <p>Theo dõi tình trạng sử dụng account Kreo Takeoff (Đồng bộ Real-time)</p>
@@ -770,9 +772,9 @@
                 setupNotice.className = 'setup-notice config-saved';
                 setupNotice.querySelector('h3').innerHTML = '✅ Firebase đã được cấu hình';
                 setupNotice.querySelector('p').innerHTML = `Config Firebase đã được lưu. Machine ID: <strong>${machineId}</strong><br>Bấm "Kết nối Firebase" để kết nối lại.`;
-                
-                // Hiển thị nút reset
-                document.getElementById('resetBtn').style.display = 'inline-block';
+                             // Ẩn notice và hiển thị nút reset cố định ngay lập tức
+                document.getElementById(\'setupNotice\').style.display = \'none\';
+                document.getElementById(\'fixedResetControls\').style.display = \'flex\';
                 
                 // Tự động kết nối lại
                 setTimeout(() => {
