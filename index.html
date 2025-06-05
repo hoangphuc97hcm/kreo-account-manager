@@ -325,22 +325,6 @@
             border: 1px solid #10b981;
             color: #065f46;
         }
-        }
-
-        .fixed-reset-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: none; /* Hidden by default */
-            gap: 10px;
-        }
-
-        .fixed-reset-controls .reset-btn {
-            padding: 10px 15px;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
     </style>
 </head>
 <body>
@@ -363,6 +347,7 @@
             <div>
                 <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
                 <button class="reset-btn" onclick="resetConfig()" style="display: none;" id="resetBtn">Đặt lại Config</button>
+                <button class="reset-btn" onclick="resetMachineId()" style="background: #6b7280; margin-left: 5px;">Reset Machine ID</button>
             </div>
             <p style="margin-top: 10px; font-size: 0.9rem;">
                 Lấy thông tin này từ Firebase Console → Project Settings → Web Apps
@@ -471,12 +456,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
 
-    <!-- Fixed Reset Buttons -->
-    <div id="fixedResetControls" class="fixed-reset-controls">
-        <button class="reset-btn" onclick="resetConfig()">Reset Firebase</button>
-        <button class="reset-btn" onclick="resetMachineId()" style="background: #6b7280;">Reset Machine ID</button>
-    </div>
-
     <script>
         let database = null;
         let machineId = getMachineId();
@@ -565,9 +544,8 @@
                 // Lưu config để lần sau không cần nhập lại
                 saveFirebaseConfig({ apiKey, databaseURL, projectId });
 
-                // Ẩn setup notice và hiển thị nút reset cố định
+                // Ẩn setup notice
                 document.getElementById('setupNotice').style.display = 'none';
-                document.getElementById('fixedResetControls').style.display = 'flex'; // Use flex due to gap style
 
                 // Bắt đầu listen dữ liệu
                 startListening();
@@ -770,9 +748,9 @@
                 setupNotice.className = 'setup-notice config-saved';
                 setupNotice.querySelector('h3').innerHTML = '✅ Firebase đã được cấu hình';
                 setupNotice.querySelector('p').innerHTML = `Config Firebase đã được lưu. Machine ID: <strong>${machineId}</strong><br>Bấm "Kết nối Firebase" để kết nối lại.`;
-                             // Ẩn notice và hiển thị nút reset cố định ngay lập tức
-                document.getElementById(\'setupNotice\').style.display = \'none\';
-                document.getElementById(\'fixedResetControls\').style.display = \'flex\';
+                
+                // Hiển thị nút reset
+                document.getElementById('resetBtn').style.display = 'inline-block';
                 
                 // Tự động kết nối lại
                 setTimeout(() => {
