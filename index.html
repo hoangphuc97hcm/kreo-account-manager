@@ -347,6 +347,7 @@
             <div>
                 <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
                 <button class="reset-btn" onclick="resetConfig()" style="display: none;" id="resetBtn">Đặt lại Config</button>
+                <button class="reset-btn" onclick="resetMachineId()" style="background: #6b7280; margin-left: 5px;">Reset Machine ID</button>
             </div>
             <p style="margin-top: 10px; font-size: 0.9rem;">
                 Lấy thông tin này từ Firebase Console → Project Settings → Web Apps
@@ -457,8 +458,28 @@
 
     <script>
         let database = null;
-        let machineId = 'PC-' + Math.random().toString(36).substr(2, 9);
+        let machineId = getMachineId();
         let isConnected = false;
+
+        // Tạo hoặc lấy machineId cố định cho máy này
+        function getMachineId() {
+            let stored = localStorage.getItem('machineId');
+            if (!stored) {
+                // Tạo ID duy nhất dựa trên thông tin máy
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.textBaseline = 'top';
+                ctx.font = '14px Arial';
+                ctx.fillText('Machine fingerprint', 2, 2);
+                
+                const fingerprint = canvas.toDataURL();
+                const hash = fingerprint.slice(-10);
+                
+                stored = 'PC-' + hash + '-' + Date.now().toString(36).slice(-4);
+                localStorage.setItem('machineId', stored);
+            }
+            return stored;
+        }
 
         // Dữ liệu account mặc định
         let accountData = {
@@ -481,8 +502,18 @@
 
         // Xóa config đã lưu
         function resetConfig() {
-            localStorage.removeItem('firebaseConfig');
-            location.reload(); // Reload page để hiển thị form setup lại
+            if (confirm('Bạn có chắc muốn xóa cấu hình Firebase đã lưu không?')) {
+                localStorage.removeItem('firebaseConfig');
+                location.reload(); // Reload page để hiển thị form setup lại
+            }
+        }
+
+        // Xóa Machine ID (để test)  
+        function resetMachineId() {
+            if (confirm('Xóa Machine ID? (Chỉ dùng để test)')) {
+                localStorage.removeItem('machineId');
+                location.reload();
+            }
         }
 
         function setupFirebase() {
@@ -701,6 +732,9 @@
             updateStats();
             updateSyncStatus(false, 'Chưa kết nối');
             
+            // Hiển thị Machine ID hiện tại
+            console.log('Machine ID hiện tại:', machineId);
+            
             // Thử load config đã lưu
             const savedConfig = loadFirebaseConfig();
             if (savedConfig) {
@@ -713,7 +747,7 @@
                 const setupNotice = document.getElementById('setupNotice');
                 setupNotice.className = 'setup-notice config-saved';
                 setupNotice.querySelector('h3').innerHTML = '✅ Firebase đã được cấu hình';
-                setupNotice.querySelector('p').textContent = 'Config Firebase đã được lưu. Bấm "Kết nối Firebase" để kết nối lại.';
+                setupNotice.querySelector('p').innerHTML = `Config Firebase đã được lưu. Machine ID: <strong>${machineId}</strong><br>Bấm "Kết nối Firebase" để kết nối lại.`;
                 
                 // Hiển thị nút reset
                 document.getElementById('resetBtn').style.display = 'inline-block';
@@ -722,6 +756,10 @@
                 setTimeout(() => {
                     setupFirebase();
                 }, 1000);
+            } else {
+                // Hiển thị Machine ID trong setup notice
+                const setupNotice = document.getElementById('setupNotice');
+                setupNotice.querySelector('p').innerHTML = `Nhập thông tin Firebase để đồng bộ dữ liệu giữa các máy:<br><small>Machine ID: <strong>${machineId}</strong></small>`;
             }
         }
 
