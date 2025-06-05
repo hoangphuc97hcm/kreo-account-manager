@@ -349,9 +349,9 @@
         </div>
         
         <div class="accounts-grid">
-            <div class="account-card available" data-account="1">
+            <div class="account-card available" data-account="admin">
                 <div class="account-header">
-                    <div class="account-name">Account 1</div>
+                    <div class="account-name">👑 Admin</div>
                     <div class="status-badge status-available">Sẵn sàng</div>
                 </div>
                 
@@ -363,15 +363,15 @@
                 
                 <div class="input-group">
                     <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
-                    <button class="action-btn btn-use" onclick="useAccount(1)">Sử dụng</button>
+                    <button class="action-btn btn-use" onclick="useAccount('admin')">Sử dụng</button>
                 </div>
                 
                 <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
             </div>
             
-            <div class="account-card available" data-account="2">
+            <div class="account-card available" data-account="kreo01">
                 <div class="account-header">
-                    <div class="account-name">Account 2</div>
+                    <div class="account-name">🔧 Kreo01</div>
                     <div class="status-badge status-available">Sẵn sàng</div>
                 </div>
                 
@@ -383,15 +383,15 @@
                 
                 <div class="input-group">
                     <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
-                    <button class="action-btn btn-use" onclick="useAccount(2)">Sử dụng</button>
+                    <button class="action-btn btn-use" onclick="useAccount('kreo01')">Sử dụng</button>
                 </div>
                 
                 <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
             </div>
             
-            <div class="account-card available" data-account="3">
+            <div class="account-card available" data-account="kreo02">
                 <div class="account-header">
-                    <div class="account-name">Account 3</div>
+                    <div class="account-name">🔧 Kreo02</div>
                     <div class="status-badge status-available">Sẵn sàng</div>
                 </div>
                 
@@ -403,15 +403,15 @@
                 
                 <div class="input-group">
                     <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
-                    <button class="action-btn btn-use" onclick="useAccount(3)">Sử dụng</button>
+                    <button class="action-btn btn-use" onclick="useAccount('kreo02')">Sử dụng</button>
                 </div>
                 
                 <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
             </div>
             
-            <div class="account-card available" data-account="4">
+            <div class="account-card available" data-account="kreo03">
                 <div class="account-header">
-                    <div class="account-name">Account 4</div>
+                    <div class="account-name">🔧 Kreo03</div>
                     <div class="status-badge status-available">Sẵn sàng</div>
                 </div>
                 
@@ -423,7 +423,7 @@
                 
                 <div class="input-group">
                     <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
-                    <button class="action-btn btn-use" onclick="useAccount(4)">Sử dụng</button>
+                    <button class="action-btn btn-use" onclick="useAccount('kreo03')">Sử dụng</button>
                 </div>
                 
                 <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
@@ -442,10 +442,10 @@
 
         // Dữ liệu account mặc định
         let accountData = {
-            1: { inUse: false, user: '', startTime: null, machineId: '' },
-            2: { inUse: false, user: '', startTime: null, machineId: '' },
-            3: { inUse: false, user: '', startTime: null, machineId: '' },
-            4: { inUse: false, user: '', startTime: null, machineId: '' }
+            admin: { inUse: false, user: '', startTime: null, machineId: '' },
+            kreo01: { inUse: false, user: '', startTime: null, machineId: '' },
+            kreo02: { inUse: false, user: '', startTime: null, machineId: '' },
+            kreo03: { inUse: false, user: '', startTime: null, machineId: '' }
         };
 
         function setupFirebase() {
@@ -570,9 +570,10 @@
         }
 
         function updateAllAccountsDisplay() {
-            for (let i = 1; i <= 4; i++) {
-                updateAccountDisplay(i);
-            }
+            const accounts = ['admin', 'kreo01', 'kreo02', 'kreo03'];
+            accounts.forEach(accountId => {
+                updateAccountDisplay(accountId);
+            });
         }
 
         function updateAccountDisplay(accountId) {
@@ -646,8 +647,9 @@
 
         // Cập nhật thời gian sử dụng mỗi phút
         setInterval(() => {
-            Object.keys(accountData).forEach(accountId => {
-                if (accountData[accountId].inUse) {
+            const accounts = ['admin', 'kreo01', 'kreo02', 'kreo03'];
+            accounts.forEach(accountId => {
+                if (accountData[accountId] && accountData[accountId].inUse) {
                     const card = document.querySelector(`[data-account="${accountId}"]`);
                     const timeElement = card.querySelector('.use-time');
                     if (timeElement) {
@@ -674,4 +676,3 @@
     </script>
 </body>
 </html>
-Add Kreo Account Manager
