@@ -771,11 +771,17 @@
                 document.getElementById('apiKey').value = savedConfig.apiKey;
                 document.getElementById('databaseURL').value = savedConfig.databaseURL;
                 document.getElementById('projectId').value = savedConfig.projectId;
-                             // Chỉ cập nhật text, không ẩn notice hay tự động kết nối
+                // Cập nhật giao diện, giữ lại input và button
                 const setupNotice = document.getElementById(\'setupNotice\');
-                setupNotice.className = \'setup-notice config-saved\';
-                setupNotice.querySelector(\'h3\').innerHTML = \'✅ Firebase đã được cấu hình\';
-                setupNotice.querySelector(\'p\').innerHTML = `Config Firebase đã được lưu. Machine ID: <strong>${machineId}</strong><br>Bấm \"Kết nối Firebase\" để kết nối.`;     } else {
+                setupNotice.className = \'setup-notice config-saved\'; // Apply saved style
+                setupNotice.querySelector(\'h3\').textContent = \'✅ Firebase đã được cấu hình\'; // Update heading
+                // Find the first <p> tag within setupNotice and update its text
+                const firstParagraph = setupNotice.querySelector(\'p\');
+                if (firstParagraph) {
+                     firstParagraph.innerHTML = `Config Firebase đã được lưu. Machine ID: <strong>${machineId}</strong><br>Bấm nút \"Kết nối Firebase\" bên dưới để bắt đầu.`;
+                }
+                // Ensure the notice (containing the button) remains visible
+                setupNotice.style.display = \'block\'; // Explicitly ensure it\'s visible     } else {
                 // Hiển thị Machine ID trong setup notice
                 const setupNotice = document.getElementById('setupNotice');
                 setupNotice.querySelector('p').innerHTML = `Nhập thông tin Firebase để đồng bộ dữ liệu giữa các máy:<br><small>Machine ID: <strong>${machineId}</strong></small>`;
