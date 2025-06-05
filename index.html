@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kreo Account Manager - Sync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .sync-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        .sync-indicator.offline {
+            background: #ef4444;
+            animation: none;
+        }
+        
+        .accounts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 40px;
+        }
+        
+        .account-card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+        }
+        
+        .account-card.available {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        }
+        
+        .account-card.in-use {
+            border-color: #ef4444;
+            background: linear-gradient(135deg, #fef2f2 0%, #fef2f2 100%);
+        }
+        
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .account-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-available {
+            background: #10b981;
+            color: white;
+        }
+        
+        .status-in-use {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .user-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #4facfe;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+        
+        .use-time {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .machine-info {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-use {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-use:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-release {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .btn-release:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+        
+        .stats {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .stat-item {
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .user-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .user-input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+        
+        .account-card.in-use {
+            animation: pulse 3s infinite;
+        }
+        
+        .kreo-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .kreo-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .setup-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px;
+            text-align: center;
+        }
+        
+        .setup-notice h3 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+        
+        .setup-notice p {
+            color: #78350f;
+            margin-bottom: 15px;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .setup-btn {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="sync-status">
+                <div class="sync-indicator" id="syncIndicator"></div>
+                <span id="syncStatus">Đang kết nối...</span>
+            </div>
+            <h1>🚀 Kreo Account Manager</h1>
+            <p>Theo dõi tình trạng sử dụng account Kreo Takeoff (Đồng bộ Real-time)</p>
+        </div>
+        
+        <div class="setup-notice" id="setupNotice">
+            <h3>⚠️ Cần thiết lập Firebase</h3>
+            <p>Nhập thông tin Firebase để đồng bộ dữ liệu giữa các máy:</p>
+            <input type="text" class="config-input" id="apiKey" placeholder="API Key">
+            <input type="text" class="config-input" id="databaseURL" placeholder="Database URL">
+            <input type="text" class="config-input" id="projectId" placeholder="Project ID">
+            <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                Lấy thông tin này từ Firebase Console → Project Settings → Web Apps
+            </p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-number" id="availableCount">4</span>
+                <span class="stat-label">Có thể dùng</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="inUseCount">0</span>
+                <span class="stat-label">Đang sử dụng</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number">10</span>
+                <span class="stat-label">Tổng máy</span>
+            </div>
+        </div>
+        
+        <div class="accounts-grid">
+            <div class="account-card available" data-account="1">
+                <div class="account-header">
+                    <div class="account-name">Account 1</div>
+                    <div class="status-badge status-available">Sẵn sàng</div>
+                </div>
+                
+                <div class="user-info" style="display: none;">
+                    <div class="user-name"></div>
+                    <div class="use-time"></div>
+                    <div class="machine-info"></div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
+                    <button class="action-btn btn-use" onclick="useAccount(1)">Sử dụng</button>
+                </div>
+                
+                <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
+            </div>
+            
+            <div class="account-card available" data-account="2">
+                <div class="account-header">
+                    <div class="account-name">Account 2</div>
+                    <div class="status-badge status-available">Sẵn sàng</div>
+                </div>
+                
+                <div class="user-info" style="display: none;">
+                    <div class="user-name"></div>
+                    <div class="use-time"></div>
+                    <div class="machine-info"></div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
+                    <button class="action-btn btn-use" onclick="useAccount(2)">Sử dụng</button>
+                </div>
+                
+                <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
+            </div>
+            
+            <div class="account-card available" data-account="3">
+                <div class="account-header">
+                    <div class="account-name">Account 3</div>
+                    <div class="status-badge status-available">Sẵn sàng</div>
+                </div>
+                
+                <div class="user-info" style="display: none;">
+                    <div class="user-name"></div>
+                    <div class="use-time"></div>
+                    <div class="machine-info"></div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
+                    <button class="action-btn btn-use" onclick="useAccount(3)">Sử dụng</button>
+                </div>
+                
+                <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
+            </div>
+            
+            <div class="account-card available" data-account="4">
+                <div class="account-header">
+                    <div class="account-name">Account 4</div>
+                    <div class="status-badge status-available">Sẵn sàng</div>
+                </div>
+                
+                <div class="user-info" style="display: none;">
+                    <div class="user-name"></div>
+                    <div class="use-time"></div>
+                    <div class="machine-info"></div>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" class="user-input" placeholder="Nhập tên của bạn..." maxlength="30">
+                    <button class="action-btn btn-use" onclick="useAccount(4)">Sử dụng</button>
+                </div>
+                
+                <a href="https://takeoff.kreo.net/2d/projects" target="_blank" class="kreo-link">🔗 Mở Kreo Takeoff</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+
+    <script>
+        let database = null;
+        let machineId = 'PC-' + Math.random().toString(36).substr(2, 9);
+        let isConnected = false;
+
+        // Dữ liệu account mặc định
+        let accountData = {
+            1: { inUse: false, user: '', startTime: null, machineId: '' },
+            2: { inUse: false, user: '', startTime: null, machineId: '' },
+            3: { inUse: false, user: '', startTime: null, machineId: '' },
+            4: { inUse: false, user: '', startTime: null, machineId: '' }
+        };
+
+        function setupFirebase() {
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const databaseURL = document.getElementById('databaseURL').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
+
+            if (!apiKey || !databaseURL || !projectId) {
+                alert('Vui lòng nhập đầy đủ thông tin Firebase!');
+                return;
+            }
+
+            const firebaseConfig = {
+                apiKey: apiKey,
+                databaseURL: databaseURL,
+                projectId: projectId,
+                authDomain: projectId + '.firebaseapp.com',
+                storageBucket: projectId + '.appspot.com',
+                messagingSenderId: '123456789',
+                appId: '1:123456789:web:abcdef123456789'
+            };
+
+            try {
+                // Khởi tạo Firebase
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+
+                // Ẩn setup notice
+                document.getElementById('setupNotice').style.display = 'none';
+
+                // Bắt đầu listen dữ liệu
+                startListening();
+                
+                updateSyncStatus(true, 'Đã kết nối');
+                
+                // Lưu config để lần sau không cần nhập lại
+                const config = { apiKey, databaseURL, projectId };
+                // Lưu vào biến tạm thời (không dùng localStorage)
+                window.firebaseConfig = config;
+                
+                console.log('Firebase đã kết nối thành công!');
+            } catch (error) {
+                console.error('Lỗi kết nối Firebase:', error);
+                alert('Lỗi kết nối Firebase: ' + error.message);
+            }
+        }
+
+        function startListening() {
+            if (!database) return;
+
+            // Lắng nghe thay đổi dữ liệu
+            database.ref('accounts').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    accountData = data;
+                    updateAllAccountsDisplay();
+                    updateStats();
+                }
+            });
+
+            // Kiểm tra kết nối
+            database.ref('.info/connected').on('value', (snapshot) => {
+                isConnected = snapshot.val();
+                updateSyncStatus(isConnected, isConnected ? 'Đã kết nối' : 'Mất kết nối');
+            });
+        }
+
+        function updateSyncStatus(connected, text) {
+            const indicator = document.getElementById('syncIndicator');
+            const status = document.getElementById('syncStatus');
+            
+            if (connected) {
+                indicator.className = 'sync-indicator';
+                status.textContent = text;
+            } else {
+                indicator.className = 'sync-indicator offline';
+                status.textContent = text;
+            }
+        }
+
+        function useAccount(accountId) {
+            const card = document.querySelector(`[data-account="${accountId}"]`);
+            const input = card.querySelector('.user-input');
+            const userName = input.value.trim();
+            
+            if (!userName) {
+                alert('Vui lòng nhập tên của bạn!');
+                return;
+            }
+
+            if (!database) {
+                alert('Chưa kết nối Firebase! Vui lòng thiết lập trước.');
+                return;
+            }
+            
+            // Cập nhật dữ liệu lên Firebase
+            const accountRef = database.ref('accounts/' + accountId);
+            accountRef.set({
+                inUse: true,
+                user: userName,
+                startTime: Date.now(),
+                machineId: machineId
+            });
+            
+            // Xóa input
+            input.value = '';
+        }
+
+        function releaseAccount(accountId) {
+            if (!database) {
+                alert('Chưa kết nối Firebase!');
+                return;
+            }
+
+            const accountRef = database.ref('accounts/' + accountId);
+            accountRef.set({
+                inUse: false,
+                user: '',
+                startTime: null,
+                machineId: ''
+            });
+        }
+
+        function updateAllAccountsDisplay() {
+            for (let i = 1; i <= 4; i++) {
+                updateAccountDisplay(i);
+            }
+        }
+
+        function updateAccountDisplay(accountId) {
+            const card = document.querySelector(`[data-account="${accountId}"]`);
+            const data = accountData[accountId];
+            if (!data) return;
+
+            const statusBadge = card.querySelector('.status-badge');
+            const userInfo = card.querySelector('.user-info');
+            const inputGroup = card.querySelector('.input-group');
+            const actionBtn = card.querySelector('.action-btn');
+            
+            if (data.inUse) {
+                // Account đang được sử dụng
+                card.className = 'account-card in-use';
+                statusBadge.className = 'status-badge status-in-use';
+                statusBadge.textContent = 'Đang dùng';
+                
+                // Hiển thị thông tin người dùng
+                userInfo.style.display = 'block';
+                userInfo.querySelector('.user-name').textContent = `👤 ${data.user}`;
+                
+                const startTime = new Date(data.startTime);
+                const duration = Math.floor((Date.now() - data.startTime) / 60000);
+                userInfo.querySelector('.use-time').textContent = `⏰ Đã dùng: ${duration} phút`;
+                userInfo.querySelector('.machine-info').textContent = `🖥️ Máy: ${data.machineId}`;
+                
+                // Kiểm tra xem có phải máy hiện tại đang dùng không
+                if (data.machineId === machineId) {
+                    actionBtn.className = 'action-btn btn-release';
+                    actionBtn.textContent = 'Ngừng sử dụng';
+                    actionBtn.onclick = () => releaseAccount(accountId);
+                } else {
+                    actionBtn.className = 'action-btn btn-use';
+                    actionBtn.textContent = 'Đang được dùng';
+                    actionBtn.disabled = true;
+                    actionBtn.style.opacity = '0.5';
+                    actionBtn.onclick = null;
+                }
+                
+                // Ẩn input
+                inputGroup.querySelector('.user-input').style.display = 'none';
+            } else {
+                // Account sẵn sàng
+                card.className = 'account-card available';
+                statusBadge.className = 'status-badge status-available';
+                statusBadge.textContent = 'Sẵn sàng';
+                
+                // Ẩn thông tin người dùng
+                userInfo.style.display = 'none';
+                
+                // Thay đổi nút thành "Sử dụng"
+                actionBtn.className = 'action-btn btn-use';
+                actionBtn.textContent = 'Sử dụng';
+                actionBtn.disabled = false;
+                actionBtn.style.opacity = '1';
+                actionBtn.onclick = () => useAccount(accountId);
+                
+                // Hiển thị input
+                inputGroup.querySelector('.user-input').style.display = 'flex';
+            }
+        }
+
+        function updateStats() {
+            const inUse = Object.values(accountData).filter(acc => acc.inUse).length;
+            const available = 4 - inUse;
+            
+            document.getElementById('inUseCount').textContent = inUse;
+            document.getElementById('availableCount').textContent = available;
+        }
+
+        // Cập nhật thời gian sử dụng mỗi phút
+        setInterval(() => {
+            Object.keys(accountData).forEach(accountId => {
+                if (accountData[accountId].inUse) {
+                    const card = document.querySelector(`[data-account="${accountId}"]`);
+                    const timeElement = card.querySelector('.use-time');
+                    if (timeElement) {
+                        const duration = Math.floor((Date.now() - accountData[accountId].startTime) / 60000);
+                        timeElement.textContent = `⏰ Đã dùng: ${duration} phút`;
+                    }
+                }
+            });
+        }, 60000);
+
+        // Khởi tạo
+        updateStats();
+        updateSyncStatus(false, 'Chưa kết nối');
+        
+        // Thử load config đã lưu (nếu có)
+        setTimeout(() => {
+            if (window.firebaseConfig) {
+                const config = window.firebaseConfig;
+                document.getElementById('apiKey').value = config.apiKey;
+                document.getElementById('databaseURL').value = config.databaseURL;
+                document.getElementById('projectId').value = config.projectId;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+Add Kreo Account Manager
