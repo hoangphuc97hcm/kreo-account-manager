@@ -613,35 +613,43 @@
                 indicator.className = 'sync-indicator offline';
                 status.textContent = text;
             }
-        }
-
-        function useAccount(accountId) {
+               async function useAccount(accountId) { // Make function async
             const card = document.querySelector(`[data-account="${accountId}"]`);
-            const input = card.querySelector('.user-input');
+            const input = card.querySelector(\".user-input\");
             const userName = input.value.trim();
             
             if (!userName) {
-                alert('Vui lòng nhập tên của bạn!');
+                alert(\'Vui lòng nhập tên của bạn!\');
                 return;
             }
 
             if (!database) {
-                alert('Chưa kết nối Firebase! Vui lòng thiết lập trước.');
+                alert(\'Chưa kết nối Firebase! Vui lòng thiết lập trước.\');
                 return;
+            }
+
+            // Get Public IP
+            let ipAddress = \'N/A\';
+            try {
+                const response = await fetch(\'https://api.ipify.org?format=json\');
+                const data = await response.json();
+                ipAddress = data.ip;
+            } catch (error) {
+                console.error(\'Lỗi lấy địa chỉ IP:\', error);
             }
             
             // Cập nhật dữ liệu lên Firebase
-            const accountRef = database.ref('accounts/' + accountId);
+            const accountRef = database.ref(\'accounts/\' + accountId);
             accountRef.set({
                 inUse: true,
                 user: userName,
                 startTime: Date.now(),
-                machineId: machineId
+                machineId: machineId,
+                ipAddress: ipAddress // Add IP Address
             });
             
             // Xóa input
-            input.value = '';
-        }
+            input.value = \'\';   }
 
         function releaseAccount(accountId) {
             if (!database) {
@@ -688,8 +696,7 @@
                 const startTime = new Date(data.startTime);
                 const duration = Math.floor((Date.now() - data.startTime) / 60000);
                 userInfo.querySelector('.use-time').textContent = `⏰ Đã dùng: ${duration} phút`;
-                userInfo.querySelector('.machine-info').textContent = `🖥️ Máy: ${data.machineId}`;
-                
+                userInfo.querySelector(\".machine-info\").textContent = `🖥️ Máy: ${data.machineId} (IP: ${data.ipAddress || \'N/A\'})`;               
                 // Kiểm tra xem có phải máy hiện tại đang dùng không
                 if (data.machineId === machineId) {
                     actionBtn.className = 'action-btn btn-release';
