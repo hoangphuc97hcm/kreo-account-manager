@@ -307,6 +307,23 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .reset-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .config-saved {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
         }
     </style>
 </head>
@@ -327,7 +344,10 @@
             <input type="text" class="config-input" id="apiKey" placeholder="API Key">
             <input type="text" class="config-input" id="databaseURL" placeholder="Database URL">
             <input type="text" class="config-input" id="projectId" placeholder="Project ID">
-            <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
+            <div>
+                <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
+                <button class="reset-btn" onclick="resetConfig()" style="display: none;" id="resetBtn">Đặt lại Config</button>
+            </div>
             <p style="margin-top: 10px; font-size: 0.9rem;">
                 Lấy thông tin này từ Firebase Console → Project Settings → Web Apps
             </p>
@@ -448,6 +468,23 @@
             kreo03: { inUse: false, user: '', startTime: null, machineId: '' }
         };
 
+        // Lưu config Firebase vào localStorage
+        function saveFirebaseConfig(config) {
+            localStorage.setItem('firebaseConfig', JSON.stringify(config));
+        }
+
+        // Đọc config Firebase từ localStorage
+        function loadFirebaseConfig() {
+            const saved = localStorage.getItem('firebaseConfig');
+            return saved ? JSON.parse(saved) : null;
+        }
+
+        // Xóa config đã lưu
+        function resetConfig() {
+            localStorage.removeItem('firebaseConfig');
+            location.reload(); // Reload page để hiển thị form setup lại
+        }
+
         function setupFirebase() {
             const apiKey = document.getElementById('apiKey').value.trim();
             const databaseURL = document.getElementById('databaseURL').value.trim();
@@ -473,6 +510,9 @@
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
 
+                // Lưu config để lần sau không cần nhập lại
+                saveFirebaseConfig({ apiKey, databaseURL, projectId });
+
                 // Ẩn setup notice
                 document.getElementById('setupNotice').style.display = 'none';
 
@@ -481,12 +521,8 @@
                 
                 updateSyncStatus(true, 'Đã kết nối');
                 
-                // Lưu config để lần sau không cần nhập lại
-                const config = { apiKey, databaseURL, projectId };
-                // Lưu vào biến tạm thời (không dùng localStorage)
-                window.firebaseConfig = config;
-                
-                console.log('Firebase đã kết nối thành công!');
+                console.log('Firebase đã kết nối thành công và lưu config!');
+                alert('Kết nối Firebase thành công! Config đã được lưu cho lần sau.');
             } catch (error) {
                 console.error('Lỗi kết nối Firebase:', error);
                 alert('Lỗi kết nối Firebase: ' + error.message);
@@ -660,19 +696,37 @@
             });
         }, 60000);
 
-        // Khởi tạo
-        updateStats();
-        updateSyncStatus(false, 'Chưa kết nối');
-        
-        // Thử load config đã lưu (nếu có)
-        setTimeout(() => {
-            if (window.firebaseConfig) {
-                const config = window.firebaseConfig;
-                document.getElementById('apiKey').value = config.apiKey;
-                document.getElementById('databaseURL').value = config.databaseURL;
-                document.getElementById('projectId').value = config.projectId;
+        // Khởi tạo khi trang load
+        function init() {
+            updateStats();
+            updateSyncStatus(false, 'Chưa kết nối');
+            
+            // Thử load config đã lưu
+            const savedConfig = loadFirebaseConfig();
+            if (savedConfig) {
+                // Điền sẵn thông tin
+                document.getElementById('apiKey').value = savedConfig.apiKey;
+                document.getElementById('databaseURL').value = savedConfig.databaseURL;
+                document.getElementById('projectId').value = savedConfig.projectId;
+                
+                // Thay đổi giao diện thành đã lưu config
+                const setupNotice = document.getElementById('setupNotice');
+                setupNotice.className = 'setup-notice config-saved';
+                setupNotice.querySelector('h3').innerHTML = '✅ Firebase đã được cấu hình';
+                setupNotice.querySelector('p').textContent = 'Config Firebase đã được lưu. Bấm "Kết nối Firebase" để kết nối lại.';
+                
+                // Hiển thị nút reset
+                document.getElementById('resetBtn').style.display = 'inline-block';
+                
+                // Tự động kết nối lại
+                setTimeout(() => {
+                    setupFirebase();
+                }, 1000);
             }
-        }, 1000);
+        }
+
+        // Chạy khi trang load
+        init();
     </script>
 </body>
 </html>
