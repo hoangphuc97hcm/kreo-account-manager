@@ -337,6 +337,10 @@
             <h1>🚀 Kreo Account Manager</h1>
             <p>Theo dõi tình trạng sử dụng account Kreo Takeoff (Đồng bộ Real-time)</p>
         </div>
+        <div id="postSetupControls" style="display: none; padding: 15px 40px 0; text-align: right; background: white;">
+             <button class="reset-btn" onclick="resetConfig()" style="margin-right: 10px;">Reset Firebase</button>
+             <button class="reset-btn" onclick="resetMachineId()" style="background: #6b7280;">Reset Machine ID</button>
+        </div>
         
         <div class="setup-notice" id="setupNotice">
             <h3>⚠️ Cần thiết lập Firebase</h3>
@@ -347,7 +351,6 @@
             <div>
                 <button class="setup-btn" onclick="setupFirebase()">Kết nối Firebase</button>
                 <button class="reset-btn" onclick="resetConfig()" style="display: none;" id="resetBtn">Đặt lại Config</button>
-                <button class="reset-btn" onclick="resetMachineId()" style="background: #6b7280; margin-left: 5px;">Reset Machine ID</button>
             </div>
             <p style="margin-top: 10px; font-size: 0.9rem;">
                 Lấy thông tin này từ Firebase Console → Project Settings → Web Apps
@@ -544,8 +547,9 @@
                 // Lưu config để lần sau không cần nhập lại
                 saveFirebaseConfig({ apiKey, databaseURL, projectId });
 
-                // Ẩn setup notice
+                // Ẩn setup notice và hiển thị nút reset
                 document.getElementById('setupNotice').style.display = 'none';
+                document.getElementById('postSetupControls').style.display = 'block';
 
                 // Bắt đầu listen dữ liệu
                 startListening();
